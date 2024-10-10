@@ -1,20 +1,24 @@
 import React from 'react'
 import styled from 'styled-components'
+import colors from '../colors';
 
 //создание сетки
 const GridWrapper = styled.div`
     display: grid;
     grid-template-columns: repeat(7,1fr);
     grid-template-rows: repeat(6,1fr);
-    background-color:#e1e2e6;
-    grid-gap:1.5px;
+    background-color:${colors.gridGapColor};
+    grid-gap:1px;
     `;
 
 const CellWrapper = styled.div`
     min-width:140px;
     min-height:100px;
-    background-color:white;
-    color:black;
+    background-color:${colors.gridBackground};
+    font-size:18px;
+    font-weight:600;
+    color:${colors.gridTextColor};
+    
 `;
 const RowInCell = styled.div`
     display:flex;
@@ -26,6 +30,7 @@ const DayWrapper = styled.div`
     display:flex;
     align-items: center;
     justify-content: center;
+
 `;
 
 const CalendarGrid = ({startDay}) => {
