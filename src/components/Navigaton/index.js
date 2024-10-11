@@ -24,7 +24,7 @@ const ButtonDiv = styled('div')`
 const ButtonWrapper = styled('button')`
     border:unset;
     height:30px;
-    font-size:24px;
+    font-size:16px;
     border-radius:4px;
     padding-right:8px;
     padding-left:8px;
@@ -38,17 +38,18 @@ const TodayButton = styled(ButtonWrapper)`
 
 `;
 
-const Navigation = () => {
+const Navigation = ({today,prevHandler,todayHandler,nextHandler}) => {
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
     return(
     <DivWrapper>
         <div>
-            <TitleWrapper>December</TitleWrapper>
-            <TextWrapper>2020</TextWrapper>
+        <TitleWrapper>{capitalize(today.format('MMMM'))}</TitleWrapper>
+            <TextWrapper>{today.format('YYYY')}</TextWrapper>
         </div>
         <ButtonDiv>
-            <ButtonWrapper>&lt;</ButtonWrapper>
-            <TodayButton>Сегодня</TodayButton>
-            <ButtonWrapper>&gt;</ButtonWrapper>
+            <ButtonWrapper onClick={prevHandler}>&lt;</ButtonWrapper>
+            <TodayButton onClick={todayHandler}>Сегодня</TodayButton>
+            <ButtonWrapper onClick={nextHandler}>&gt;</ButtonWrapper>
         </ButtonDiv>
     </DivWrapper>);
 };
