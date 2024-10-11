@@ -29,7 +29,7 @@ function App() {
       todayHandler = {todayHandler}
       nextHandler = {nextHandler}
       />
-      <CalendarGrid startDay = {startDay}/>
+      <CalendarGrid today = {today} startDay = {startDay}/>
     </div>
   );
 }

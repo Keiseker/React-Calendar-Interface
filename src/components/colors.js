@@ -4,6 +4,7 @@ const colors = {
     gridGapColor:'#79ac78',  // Цвет сетки
     gridBackground: '#ffffff', // Цвет ячейки
     gridTextColor:'#79ac78', // Цвет номера дня
+    gridTextColorUnselected:'#B2D6B2', // Цвет номера дня не текущего месяца
     currentDayColor:'#79ac78' // Цвет текущего дня
 };
 
