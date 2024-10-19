@@ -1,92 +1,77 @@
-import React from 'react'
-import styled from 'styled-components'
-import colors from '../colors';
+import { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
 import moment from 'moment';
+import colors from '../colors';
 
-//создание сетки
-const GridWrapper = styled.div`
-    display: grid;
-    grid-template-columns: repeat(7,1fr);
-    background-color:${props => props.isHeader ? 'white': colors.gridGapColor};
-    grid-gap:1px;
-    ${props => props.isHeader && 'border-bottom: 1px solid ${colors.gridGapColor}'};
-    `;
+const CalendarGrid = ({ startDay, today }) => {
+  const [cellHeight, setCellHeight] = useState(0);
+  const totalDays = 35;
+  const day = startDay.clone().subtract(1, 'day');
+  
+  // Массив отображаемых дней месяца
+  const daysArray = [...Array(totalDays)].map(() => day.add(1, 'day').clone());
 
-const CellWrapper = styled.div`
-    min-width:140px;
-    min-height:${props => props.isHeader ? 30: 100}px;
-    background-color:${colors.gridBackground};
-    font-size:18px;
-    font-weight:600;
-    color:${props => props.isSelectedMonth? colors.gridTextColor:colors.gridTextColorUnselected };
-    
-`;
-const RowInCell = styled.div`
-    display:flex;
-    justify-content: ${props => props.justifyContent ? props.justifyContent : 'flex-start'};
-    ${props => props.pr && `padding-right: ${props.pr * 14}px`};
-`;
-const DayWrapper = styled.div`
-    margin-top:8px;
-    margin-right:8px;
-    height:33px;
-    width: 33px;
-    display:flex;
-    align-items: center;
-    justify-content: center;
+  const isCurrentDay = (day) => moment().isSame(day, 'day');
+  const isSelectedMonth = (day) => today.isSame(day, 'month');
+  
+  // Обновляем высоту ячеек при изменении размера окна
+  useEffect(() => {
+    const updateCellHeight = () => {
+      const headerHeight = 64; // Фиксированная высота Header
+      const viewportHeight = window.innerHeight;
+      const availableHeight = viewportHeight - headerHeight;
+      const newCellHeight = availableHeight / 5; // 5 строк
+      setCellHeight(newCellHeight);
+    };
 
-`;
+    updateCellHeight();
+    window.addEventListener('resize', updateCellHeight);
 
-const CurrentDay = styled('div')`
-    height:100%;
-    width:100%;
-    background:${colors.currentDayColor};
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-`;
+    // Чистим обработчик при размонтировании компонента
+    return () => {
+      window.removeEventListener('resize', updateCellHeight);
+    };
+  }, []);
 
-const CalendarGrid = ({startDay,today}) => {
-    //всего дней отображаемого месяца
-    const totalDays = 42;
-    const day = startDay.clone().subtract(1,'day');
-    //массив отображаемых дней месяца
-    const daysArray = [...Array(42)].map(() => day.add(1, 'day').clone());
-    const isCurrentDay = (day) => moment().isSame(day,'day');
-    const isSelectedMonth = (day) => today.isSame(day,'month');
-    return (
-    <>
-    <GridWrapper isHeader>
-        {[...Array(7,)].map((_,i)=>
-            <CellWrapper isHeader isSelectedMonth>
-            <RowInCell justifyContent={'flex-end'} pr={1}>
-            {moment().day(i + 1).format('dd')}
-            </RowInCell>
-            </CellWrapper>
-            )}
-    </GridWrapper>
-    <GridWrapper>
-        {
-            daysArray.map((dayItem) => (
-                <CellWrapper 
-                key={dayItem.unix()}
-                isSelectedMonth ={isSelectedMonth(dayItem)}
-                >
-                    <RowInCell
-                    justifyContent={'flex-end'}>
-                        <DayWrapper>
-                            {!isCurrentDay(dayItem) && dayItem.format('D')}
-                            {isCurrentDay(dayItem) && <CurrentDay>{dayItem.format('D')}</CurrentDay>}
-                        </DayWrapper>
-                    </RowInCell>
-                </CellWrapper>
-            ))
-        }
-    </GridWrapper>
-    </>
-    );
+  return (
+    <Box sx={{ height: '100%', backgroundColor:colors.primary }}>
+      <Grid
+        container
+        spacing={0}
+        sx={{
+          '--Grid-borderWidth': '1px',
+          borderTop: 'var(--Grid-borderWidth) solid',
+          borderLeft: 'var(--Grid-borderWidth) solid',
+          borderColor: 'divider',
+          '& > div': {
+            borderRight: 'var(--Grid-borderWidth) solid',
+            borderBottom: 'var(--Grid-borderWidth) solid',
+            borderColor: 'divider',
+          },
+        }}
+      >
+        {daysArray.map((day, index) => (
+          <Grid
+            key={index}
+            item
+            xs={12 / 7}  // 7 колонок
+            sx={{
+              height: `${cellHeight}px`,  // Динамически рассчитываемая высота
+              backgroundColor: isCurrentDay(day) ? colors.primary : 'white', // Цвет для текущего дня
+              color: isCurrentDay(day) ? colors.textPrimary : 'black', // Цвет для текущего дня
+              opacity: isSelectedMonth(day) ? 1 : 0.6,  // Прозрачность для дней, которые не относятся к выбранному месяцу
+            }}
+          >
+            {/* Контент ячейки — отображение даты */}
+            <Box sx={{ padding: 1 }}>
+              {day.format('D')} {/* День месяца */}
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
 };
 
-export{CalendarGrid};
+export default CalendarGrid;
