@@ -35,7 +35,7 @@ const CalendarGrid = ({ startDay, today }) => {
   }, []);
 
   return (
-    <Box sx={{ height: '100%', backgroundColor:colors.primary }}>
+    <Box sx={{ minHeight: 'calc(100vh - 64px)',height: '100%', backgroundColor:colors.primary }}>
       <Grid
         container
         spacing={0}

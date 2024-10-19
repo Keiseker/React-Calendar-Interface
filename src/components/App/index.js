@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Header from '../Header';
+import colors from '../colors';
 import CalendarGrid from '../CalendarGrid';
 import moment from "moment"
 import 'moment/locale/ru'; // Импортируйте русскую локализацию
@@ -25,7 +26,7 @@ const App = () => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: 'red',
+          bgcolor: colors.textPrimary,
           height: '100vh', // Высота на весь экран
           width: '100vw',  // Ширина на весь экран
         }}
