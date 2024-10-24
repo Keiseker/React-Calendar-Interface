@@ -1,3 +1,4 @@
+// Header.jsx
 import React, { useState } from 'react';
 import colors from '../colors';
 import AuthDialog from '../AuthDialog';
@@ -18,8 +19,9 @@ import SideMenu from '../SideMenu'; // Импорт бокового меню
 
 const Header = ({ today, prevHandler, todayHandler, nextHandler }) => {
   const [alignment, setAlignment] = useState('left');
-  const [open, setOpen] = useState(false); // Состояние для диалога авторизации
-  const [menuOpen, setMenuOpen] = useState(false); // Состояние для бокового меню
+  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -27,7 +29,6 @@ const Header = ({ today, prevHandler, todayHandler, nextHandler }) => {
     setAlignment(newAlignment);
   };
 
-  // Открытие и закрытие диалога
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -36,16 +37,19 @@ const Header = ({ today, prevHandler, todayHandler, nextHandler }) => {
     setOpen(false);
   };
 
-  // Открытие и закрытие меню
   const toggleDrawer = (open) => () => {
     setMenuOpen(open);
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true); // Устанавливаем состояние авторизации в true
+    handleClose(); // Закрываем диалог после успешного входа
   };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar sx={{ bgcolor: colors.primary }} position="static">
         <Toolbar>
-          {/* Меню */}
           <IconButton
             size="large"
             edge="start"
@@ -55,40 +59,22 @@ const Header = ({ today, prevHandler, todayHandler, nextHandler }) => {
           >
             <MenuIcon />
           </IconButton>
-
-          {/* Название месяца и года */}
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h6" component="div" sx={{ marginRight: 4 }}>
               {capitalize(today.format('MMMM'))} {today.format('YYYY')}
             </Typography>
           </Box>
-
-          {/* Кнопки навигации по календарю */}
           <Box sx={{ marginRight: 4 }}>
-            <IconButton
-              onClick={prevHandler}
-              color="inherit"
-              size="large"
-              aria-label="menu"
-              sx={{ marginRight: 1 }}
-            >
+            <IconButton onClick={prevHandler} color="inherit" size="large" aria-label="menu" sx={{ marginRight: 1 }}>
               <KeyboardArrowLeftIcon />
             </IconButton>
             <Button onClick={todayHandler} variant="contained" color={colors.primary}>
               Сегодня
             </Button>
-            <IconButton
-              onClick={nextHandler}
-              size="large"
-              color="inherit"
-              aria-label="menu"
-              sx={{ marginLeft: 1 }}
-            >
+            <IconButton onClick={nextHandler} size="large" color="inherit" aria-label="menu" sx={{ marginLeft: 1 }}>
               <KeyboardArrowRightIcon />
             </IconButton>
           </Box>
-
-          {/* Переключение между видами */}
           <ToggleButtonGroup
             value={alignment}
             exclusive
@@ -103,18 +89,19 @@ const Header = ({ today, prevHandler, todayHandler, nextHandler }) => {
               <TaskAltOutlinedIcon />
             </ToggleButton>
           </ToggleButtonGroup>
-
-          {/* Кнопка "Войти" */}
-          <Button sx={{ marginLeft: 4 }} color="inherit" onClick={handleClickOpen}>
-            Войти
-          </Button>
+          {isAuthenticated ? (
+            <Button sx={{ marginLeft: 4 }} color="inherit">
+              Профиль
+            </Button>
+          ) : (
+            <Button sx={{ marginLeft: 4 }} color="inherit" onClick={handleClickOpen}>
+              Войти
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
-      {/* Подключение диалога авторизации */}
-      <AuthDialog open={open} onClose={handleClose} />
-
-      {/* Подключение бокового меню */}
+      <AuthDialog open={open} onClose={handleClose} onLoginSuccess={handleLoginSuccess} />
       <SideMenu menuOpen={menuOpen} toggleDrawer={toggleDrawer} />
     </Box>
   );

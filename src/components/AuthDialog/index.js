@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 import Dialog from '@mui/material/Dialog';
 import colors from '../colors';
 import DialogActions from '@mui/material/DialogActions';
@@ -12,15 +13,80 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Grid from '@mui/material/Grid';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const AuthDialog = ({ open, onClose }) => {
-  const [isLoginMode, setIsLoginMode] = useState(true);
-  const [showPassword, setShowPassword] = useState(false); // Для управления видимостью пароля
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Для управления видимостью подтверждения пароля
+const AuthDialog = ({ open, onClose, onLoginSuccess}) => {
+  const [email, setEmail] = useState(''); 
+  const [password, setPassword] = useState(''); 
+  const [error, setError] = useState(''); 
+  const [message, setMessage] = useState(''); 
+  const [isLoginMode, setIsLoginMode] = useState(true); 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // useEffect для сброса состояния при открытии диалога
+  useEffect(() => {
+    if (open) {
+      setEmail('');
+      setPassword('');
+      setError('');
+      setMessage('');
+    }
+  }, [open]);
+
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post('https://localhost:7076/api/User/Register', {
+        email: email,
+        password: password
+      });
+      setMessage(`User registered with ID: ${response.data}`);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('https://localhost:7076/api/User/Login', {
+        email: email,
+        password: password
+      });
+      onLoginSuccess();
+      onClose(); // Закрываем диалоговое окно после успешного входа
+    } catch (error) {
+      // Обработка ошибок
+      if (error.response && error.response.status === 400) {
+        setError(error.response.data.message || 'Неверная почта или пароль');
+      } else {
+        setError('Невозможно войти');
+      }
+    }
+  };
+  
+
+  const handleError = (error) => {
+    if (error.response) {
+      if (error.response.status === 400) {
+        setError(error.response.data.message || 'Неверная почта или пароль');
+      } else if (error.response.status === 500) {
+        setError('Ошибка сервера. Попробуйте позже.');
+      } else {
+        setError('Произошла ошибка: ' + error.response.status);
+      }
+    } else if (error.request) {
+      setError('Сервер не отвечает. Проверьте ваше интернет-соединение.');
+    } else {
+      setError('Произошла ошибка при отправке запроса: ' + error.message);
+    }
+  };
 
   const toggleMode = () => {
     setIsLoginMode((prevMode) => !prevMode);
+    setError('');
+    setMessage('');
+    setEmail(''); 
+    setPassword('');
   };
 
   const handleClickShowPassword = () => {
@@ -33,9 +99,8 @@ const AuthDialog = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle fontWeight="600" sx={{color: colors.primary}}>
+      <DialogTitle fontWeight="600" sx={{ color: colors.primary }}>
         {isLoginMode ? 'Войти' : 'Регистрация'}
-        {/* Кнопка закрытия */}
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -59,18 +124,15 @@ const AuthDialog = ({ open, onClose }) => {
               type="email"
               fullWidth
               variant="outlined"
+              value={email} // Связываем значение
+              onChange={(e) => setEmail(e.target.value)} 
               sx={{
-                // Стили для поля ввода
                 '& .MuiOutlinedInput-root': {
-                  '& input': {
-                    color: colors.textAdd, // Цвет текста внутри поля
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: colors.primary, // Цвет рамки при фокусе
-                  },
+                  '& input': { color: colors.textAdd },
+                  '&.Mui-focused fieldset': { borderColor: colors.primary },
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
-                  color: colors.primary, // Цвет лейбла при фокусе
+                  color: colors.primary,
                 },
               }}
             />
@@ -79,34 +141,28 @@ const AuthDialog = ({ open, onClose }) => {
             <TextField
               margin="dense"
               label="Пароль"
-              type={showPassword ? 'text' : 'password'} // Показать или скрыть пароль
+              type={showPassword ? 'text' : 'password'}
               fullWidth
               variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& input': {
-                    color: colors.textAdd, // Цвет текста внутри поля
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: colors.primary, // Цвет рамки при фокусе
-                  },
-                },
-                '& .MuiInputLabel-root.Mui-focused': {
-                  color: colors.primary, // Цвет лейбла при фокусе
-                },
-              }}
+              value={password} // Связываем значение
+              onChange={(e) => setPassword(e.target.value)} 
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleClickShowPassword}
-                      edge="end"
-                      aria-label="toggle password visibility"
-                    >
+                    <IconButton onClick={handleClickShowPassword} edge="end" aria-label="toggle password visibility">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& input': { color: colors.textAdd },
+                  '&.Mui-focused fieldset': { borderColor: colors.primary },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: colors.primary,
+                },
               }}
             />
           </Grid>
@@ -115,49 +171,48 @@ const AuthDialog = ({ open, onClose }) => {
               <TextField
                 margin="dense"
                 label="Подтвердите пароль"
-                type={showConfirmPassword ? 'text' : 'password'} // Показать или скрыть подтверждение пароля
+                type={showConfirmPassword ? 'text' : 'password'}
                 fullWidth
                 variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '& input': {
-                      color: colors.textAdd, // Цвет текста внутри поля
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: colors.primary, // Цвет рамки при фокусе
-                    },
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: colors.primary, // Цвет лейбла при фокусе
-                  },
-                }}
+                value={password} // Привязываем значение
+                onChange={(e) => setPassword(e.target.value)} 
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        onClick={handleClickShowConfirmPassword}
-                        edge="end"
-                        aria-label="toggle confirm password visibility"
-                      >
+                      <IconButton onClick={handleClickShowConfirmPassword} edge="end" aria-label="toggle confirm password visibility">
                         {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& input': { color: colors.textAdd },
+                    '&.Mui-focused fieldset': { borderColor: colors.primary },
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: colors.primary,
+                  },
                 }}
               />
             </Grid>
           )}
         </Grid>
       </DialogContent>
-      <DialogActions sx={{ justifyContent: 'center' }}>
+      <DialogActions sx={{ justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ minHeight: '40px', marginBottom: '8px', textAlign: 'center' }}>
+          {error && <p style={{ color: 'red', margin: 0 }}>{error}</p>}
+          {message && <p style={{ color: 'green', margin: 0 }}>{message}</p>}
+        </div>
         <Button
           variant="contained"
           sx={{
             backgroundColor: colors.primary,
-            width: '80%', // Ширина кнопки
-            padding: '12px', // Дополнительное пространство для кнопки
-            fontSize: '16px', // Размер шрифта побольше
+            width: '80%',
+            padding: '12px',
+            fontSize: '16px',
           }}
+          onClick={isLoginMode ? handleLogin : handleRegister}
         >
           {isLoginMode ? 'Войти' : 'Зарегистрироваться'}
         </Button>
