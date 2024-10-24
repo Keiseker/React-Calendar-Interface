@@ -40,20 +40,28 @@ const AuthDialog = ({ open, onClose, onLoginSuccess}) => {
         email: email,
         password: password
       });
-      setMessage(`User registered with ID: ${response.data}`);
+      setMessage(`Регистрация прошла успешно!`);
     } catch (error) {
       handleError(error);
     }
   };
 
   const handleLogin = async () => {
+    
     try {
       const response = await axios.post('https://localhost:7076/api/User/Login', {
         email: email,
         password: password
       });
-      onLoginSuccess();
-      onClose(); // Закрываем диалоговое окно после успешного входа
+      const uid = response.data; // Поскольку сервер возвращает строку, просто присваиваем ее переменной
+      if (uid) {
+        localStorage.setItem('uid', uid); // Сохраняем uid в localStorage
+        onLoginSuccess(); // Успешный вход
+      } else {
+        console.error('UID не найден');
+      }
+  
+      onClose(); // Закрываем диалог
     } catch (error) {
       // Обработка ошибок
       if (error.response && error.response.status === 400) {
@@ -201,8 +209,8 @@ const AuthDialog = ({ open, onClose, onLoginSuccess}) => {
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ minHeight: '40px', marginBottom: '8px', textAlign: 'center' }}>
-          {error && <p style={{ color: 'red', margin: 0 }}>{error}</p>}
-          {message && <p style={{ color: 'green', margin: 0 }}>{message}</p>}
+          {error && <p style={{ color: colors.error, margin: 0 }}>{error}</p>}
+          {message && <p style={{ color: colors.primary, margin: 0 }}>{message}</p>}
         </div>
         <Button
           variant="contained"
@@ -221,6 +229,7 @@ const AuthDialog = ({ open, onClose, onLoginSuccess}) => {
         <Button onClick={toggleMode} sx={{ margin: 'auto', color: colors.primary }}>
           {isLoginMode ? 'Нет аккаунта? Регистрация' : 'Есть аккаунт? Войти'}
         </Button>
+        
       </DialogActions>
     </Dialog>
   );
